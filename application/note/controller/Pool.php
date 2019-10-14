@@ -4,6 +4,7 @@ namespace app\note\controller;
 
 use think\Controller;
 use think\Db;
+use think\Session;
 
 class Pool extends Controller
 {
@@ -15,6 +16,7 @@ class Pool extends Controller
     }
     public function find2()
     {
+       
         $sql = Db::table('pool')->where(['gysmc' => '北京联某科技有限公司', 'rwfqr' => '孙天和'])->select();
         dump($sql);
     }
@@ -54,6 +56,33 @@ class Pool extends Controller
         });
         dump($sql);
     }
+    public function find8()
+    {
+        //高级查询  |  &
+        // $sql = Db::table('pool')->where('gysmc|gysjc','like','%银之杰%')->select();
+        $sql = Db::table('pool')->where('id&ddzj>50')->select();
+        dump($sql);
+    }
+    public function find9()
+    {
+        //区间查询
+        $sql = Db::table('pool')->where('id', ['>', '50'], ['<', '60'])->select();
+        dump($sql);
+    }
+    public function find10()
+    {
+        //批量查询
+        $sql = Db::table('pool')->where(['id' => ['<', '100'], 'rwmc' => ['like', '%中信%']])->coun();
+        dump($sql);
+    }
+
+    public function find11()
+    {
+        //批量查询
+        $sql = Db::table('pool')->where(['id' => ['<', '100'], 'rwmc' => ['like', '%中信%']]) ->fetchSql(true)->select();
+       echo $sql;
+    }
+
     //添加
     public function insert1()
     {
@@ -214,4 +243,112 @@ class Pool extends Controller
     }
 
     //field 主要目的是标识要返回或者操作的字段 可以用于查询和写入操作。
+    public function field1()
+    {
+        //只返回ID 和rwmc
+        $sql = Db::table('pool')->field('id,rwmc')->select();
+        dump($sql);
+    }
+
+    public function field2()
+    {
+        // field( 原先名称 as 输出名称)
+        $sql = Db::table('pool')->field('id,rwmc as "任务名称"')->select();
+        //或者这种写法
+        // $sql = Db::table('pool')->field(['id', 'rwmc' => "eee"])->select();
+
+        return json($sql);
+        // dump($sql);
+    }
+
+    public function field3()
+    {
+        // field('id', true)  不输出id
+        // $sql = Db::table('pool')->field('id', true)->select();
+        //field('id,rwmc', true) 不输出id和rwmc
+        $sql = Db::table('pool')->field('id,rwmc', true)->select();
+        return json($sql);
+    }
+
+    //order 排序
+    //desc 降序就是从大到小的排列的意思
+    //默认 asc
+    public function order1()
+    {
+        $sql = Db::table('pool')->where('id', '<', '44')->order('id desc')->select();
+        dump($sql);
+    }
+
+    //limit 限制结果数量
+    public function limit1()
+    {
+        //只输出5条数据
+        $sql = Db::table('pool')->limit(5)->select();
+        dump($sql);
+    }
+
+    public function limit2()
+    {
+        //输出第20条之后的25条
+        $sql = Db::table('pool')->limit(20, 25)->select();
+        dump($sql);
+    }
+    //page分页查询
+    public function page1()
+    {
+        //第一页/每页输出25条
+        $sql = Db::table('pool')->page(1, 25)->select();
+        dump($sql);
+    }
+
+    // //group  通常用于结合合计函数，根据一个或多个列对结果集进行分组 
+    // public function group1()
+    // {
+    //     //第一页/每页输出25条
+    //     $sql = Db::table('pool')->field('cgdwid,COUNT(*) as aaa')->group('id,rwmc')->select();
+    //     return json($sql);
+
+    // }
+
+    //聚合查询
+
+    public function juhe1()
+    {
+        //count() 统计个数
+        $sql = Db::table('pool')->where('id', '>', '100')->count();
+        dump($sql);
+    }
+    public function juhe2()
+    {
+        //max() 最大数
+        $sql = Db::table('pool')->where("id", '<', '10')->max('ddzj');
+        dump($sql);
+    }
+    public function juhe3()
+    {
+        //min() 最小数
+        $sql = Db::table('pool')->where("id", '<', '10')->min('ddzj');
+        dump($sql);
+    }
+    public function juhe4()
+    {
+        //avg() 平均数
+        $sql = Db::table('pool')->where("id", '<', '10')->avg('ddzj');
+        dump($sql);
+    }
+    public function juhe5()
+    {
+        //sum() 合
+        $sql = Db::table('pool')->where("id", '<', '10')->sum('ddzj');
+        dump($sql);
+    }
+
+    //时间查询
+
+    public function time1()
+    {
+        //sum() 合
+        $sql = Db::table('pool')->where("ddsj", '< time', '2019-09-05')->order('ddsj')->field("id,ddsj")->select();
+        dump($sql);
+    }
 }
