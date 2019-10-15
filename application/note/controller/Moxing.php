@@ -81,7 +81,7 @@ class Moxing extends Controller
     public function insert4()
     {
         //静态
-        $res =  Pool::create(['rwmc' => '可以删除', 'htbh' => '2019-10-12']);
+        $res =  Pool::create(['rwmc' => '可以删除', 'htbh' => '2019-10-12'])->getData();
         dump($res); //返回对象
     }
 

@@ -52,7 +52,6 @@ class Login extends Base
     {  //每次的登陆
         if ($this->request->isPost()) {
             //判断是否登陆
-
             $user =  Session::get('USER');
             if (empty($user)) {
                 return ['success' => false, 'msg' => '用户未登陆'];

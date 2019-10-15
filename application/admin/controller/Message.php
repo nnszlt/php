@@ -41,7 +41,6 @@ class Message extends Base
         $user = $this->adminCheckLogin();
         if ($user['success']) {
             $data = $req->param();
-
             if (empty($data['id'])) {
                 return  $this->sendMsgFail("ID不能为空");
             } else {

@@ -52,16 +52,33 @@ export default [{
     name: 'good',
     component: Main,
     meta: {
-      hideInBread: true
+      hideInBread: false,
+      showAlways: true,
+      title: '产品管理',
+      icon: 'ios-shirt',
     },
     children: [{
       path: 'goodType',
       name: 'goodType',
       meta: {
-        icon: '_qq',
-        title: 'QQ群'
+        title: '产品大类管理'
       },
       component: () => import('@/view/good/goodType/index.vue')
+    }, {
+      path: 'goodList',
+      name: 'goodList',
+      meta: {
+        title: '产品列表管理'
+      },
+      component: () => import('@/view/good/goodList/goodList.vue')
+    }, {
+      path: 'addGood',
+      name: 'addGood',
+      meta: {
+        title: '添加产品',
+        hideInMenu: true
+      },
+      component: () => import('@/view/good/goodList/goodAdd.vue')
     }]
   },
   {
@@ -72,23 +89,6 @@ export default [{
       href: 'https://lison16.github.io/iview-admin-doc/#/',
       icon: 'ios-book'
     }
-  },
-  {
-    path: '/join',
-    name: 'join',
-    component: Main,
-    meta: {
-      hideInBread: true
-    },
-    children: [{
-      path: 'join_page',
-      name: 'join_page',
-      meta: {
-        icon: '_qq',
-        title: 'QQ群'
-      },
-      component: () => import('@/view/join-page.vue')
-    }]
   },
   {
     path: '/message',
