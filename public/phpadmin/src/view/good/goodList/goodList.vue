@@ -15,15 +15,23 @@
         </RadioGroup>
       </div>
       <div class="serach_bar_right">
+        <Input style="width:100px;" class="input" v-model="serach.no" placeholder="产品型号" clearable />
         <Input
-          style="width:242px;"
+          style="width:100px;"
           class="input"
-          v-model="serach.searchWord"
-          placeholder="工号/姓名/邮箱/部门/标签"
+          v-model="serach.brand"
+          placeholder="产品品牌"
           clearable
         />
-        <Select class="select juesleixing" v-model="serach.followStatus">
-          <Option v-for="item in gzlist" :value="item.value" :key="item.value">{{ item.label }}</Option>
+        <Input
+          style="width:100px;"
+          class="input"
+          v-model="serach.name"
+          placeholder="产品名称"
+          clearable
+        />
+        <Select class="select juesleixing" v-model="serach.label" filterable>
+          <Option v-for="item in tags" :value="item.id" :key="item.id">{{ item.name }}</Option>
         </Select>
         <Button type="primary" icon="ios-search" @click="serachdata()">搜索</Button>
       </div>
@@ -33,8 +41,15 @@
         <Button disabled icon="md-sync">数据同步</Button>
       </div>
       <div class="serach_bar_right">
-        <Button :to="{ name: 'addGood'}" type="primary" icon="md-add">添加商品</Button>
         <Button
+          class="margin-left-sm"
+          :type="tableSelect.length>0?'primary':'dashed'"
+          :disabled="tableSelect.length==0"
+          @click="addActive"
+        >添加活动</Button>
+        <Button :to="{ name: 'addGood',params: { id: 'add' }}" type="primary" icon="md-add">添加商品</Button>
+        <Button
+          class="margin-left-sm"
           :type="tableSelect.length>0?'primary':'dashed'"
           :disabled="tableSelect.length==0"
           icon="ios-trash"
@@ -65,33 +80,16 @@
           @on-select-all="tableSelectAll"
           @on-select-all-cancel="tableSelectCancel"
         >
-          <template slot-scope="{ row, index }" slot="action">
+          <template slot-scope="{ row }" slot="enable">{{row.enable===0?'已上架':'已下架'}}</template>
+          <template slot-scope="{ row }" slot="action">
             <div class="buttonGroup">
-              <Tooltip content="编辑" placement="top">
-                <Icon
-                  class="cp"
-                  size="25"
-                  @click="showRoleModal3('edit',row,index)"
-                  type="ios-create-outline"
-                />
-              </Tooltip>
-              <Tooltip :content="row.grayStatus=='正常'?'加入灰名单':'移出灰名单'" placement="top">
-                <Icon
-                  class="cp"
-                  size="20"
-                  @click="grayStatus(row,index)"
-                  :type="row.grayStatus=='正常'?'md-person-add':'md-person'"
-                />
-              </Tooltip>
-
-              <Tooltip :content="row.grayStatus=='正常'?'加入灰名单':'移出灰名单'" placement="top">
-                <Icon
-                  class="cp"
-                  size="20"
-                  @click="grayStatus(row,index)"
-                  :type="row.grayStatus=='正常'?'md-person-add':'md-person'"
-                />
-              </Tooltip>
+              <router-link
+                tag="span"
+                class="cpl"
+                :to="{ name: 'addGood', params: { id: row.id }}"
+              >编辑</router-link>
+              <span class="cpl" @click="enable(row)">{{row.enable===0?'下架':'上架'}}</span>
+              <span>报表</span>
             </div>
           </template>
         </Table>
@@ -112,14 +110,116 @@
         </div>
       </div>
     </div>
+    <Modal
+      title="添加活动"
+      width="700"
+      v-model="modal.modalShow"
+      :styles="{top: '20px'}"
+      @on-visible-change="modalReset"
+    >
+      <div class="modalSerach">
+        <Select class="select" style="width: 125px" v-model="modal.serach.type">
+          <Option v-for="item in modal.type" :value="item.id" :key="item.id">{{ item.name }}</Option>
+        </Select>
+        <DatePicker
+          ref="modalDay"
+          :value="modal.time"
+          class="select padding-horizontal-sm"
+          type="datetimerange"
+          format="yyyy-MM-dd HH:mm"
+          placeholder="请选择活动时间"
+          style="width: 300px"
+          @on-change="modaltimeChange"
+        ></DatePicker>
+        <Input
+          class="padding-right-sm input"
+          style="width: 125px"
+          v-model="modal.serach.title"
+          placeholder="活动名"
+          clearable
+        />
+        <Button type="primary" icon="ios-search" @click="modalSerachdata()">搜索</Button>
+      </div>
+      <RadioGroup v-model="modal.ridio" class="RadioGroup margin-top-sm">
+        <div class="listRideo">
+          <Collapse accordion>
+            <Panel v-for="item in modal.activeList" :key="item.id">
+              <Radio
+                :label="item.id"
+              >{{`【${item.type==1?'秒杀':item.type==2?'满减':'领券'}】${item.title}`}}</Radio>
+              <div slot="content">
+                <p v-if="item.type==1">秒杀： 产品原价减{{item.miaosha}}</p>
+                <p
+                  v-else-if="item.type==2"
+                >满减：满{{item.manjian.split(",")[0]}}减{{item.manjian.split(",")[1]}}</p>
+                <p v-else>
+                  优惠券：减{{item.couponPrice}}
+                  <br />
+                  优惠券简介：{{item.couponDesc}}
+                </p>
+                <p>时间：{{formatDate(item.starttime*1000)+"--"+formatDate(item.endtime*1000)}}</p>
+                <p>简介：{{item.desc}}</p>
+              </div>
+            </Panel>
+          </Collapse>
+        </div>
+      </RadioGroup>
+      <Page
+        class="margin-top-sm"
+        :total="modal.page.total"
+        :current="modal.page.pageNo"
+        show-total
+        show-elevator
+        show-sizer
+        :page-size="20"
+        :page-size-opts="modal.page.pageGroup"
+        @on-change="modalpageChange"
+        @on-page-size-change="modalpageGroupChange"
+      ></Page>
+      <div slot="footer">
+        <Button type="text" size="large" @click="modal.modalShow=false">取消</Button>
+        <Button type="primary" size="large" @click="activeSubmit">确定</Button>
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
-import { getGoodTree } from "_api/goods";
+import { getGoodTree } from "_api/goodtype";
+import { listGoods, enableGoods, delGoods } from "_api/goods";
+import { listtags } from "_api/tags";
+import { listActive, goodAddActive } from "_api/active";
+
 export default {
   name: "goodList",
   data() {
     return {
+      modal: {
+        modalShow: false,
+        ridio: "",
+        time: "",
+        activeList: [],
+        serach: {
+          title: "",
+          enable: "all",
+          type: "all",
+          starttime: "",
+          endtime: ""
+        },
+        type: [
+          { name: "所有活动", id: "all" },
+          { name: "秒杀", id: "1" },
+          { name: "满减", id: "2" },
+          { name: "送券", id: "3" }
+        ],
+        collapse: false,
+        page: {
+          //分页
+          total: 20,
+          pageSize: 20,
+          pageNo: 1,
+          pageGroup: [20, 30, 40, 50]
+        }
+      },
       page: {
         //分页
         total: 20,
@@ -130,15 +230,20 @@ export default {
       save: {
         grayStatus: "全部"
       },
+      tags: [],
       rideoGroup: {
         normal: "正常",
         total: "全部",
         gray: "禁用"
       },
       serach: {
+        type: "",
         grayStatus: "",
-        searchWord: "",
+        name: "",
         tag: "",
+        no: "",
+        brand: "",
+        label: "",
         followStatus: "all"
       },
       tableHeight: null,
@@ -189,18 +294,18 @@ export default {
           //11位
         },
         {
-          title: "可用",
+          title: "上下架",
           key: "enable",
           ellipsis: true,
           tooltip: true,
           align: "center",
-
+          slot: "enable",
           minWidth: 30
           //28
         },
         {
-          title: "标签",
-          key: "tag",
+          title: "活动",
+          key: "activeTitle",
           ellipsis: true,
           tooltip: true,
           align: "center"
@@ -233,6 +338,8 @@ export default {
     var that = this;
     this.getlist();
     this.getTree();
+    this.getTags();
+    this.getActiveList();
     setTimeout(function() {
       that.tableHeight = $(".mailListManger .tree").height() - 50;
     }, 200);
@@ -266,7 +373,7 @@ export default {
           this.tableSelect.map((v, i) => {
             idArr.push(v.id);
           });
-          allEmployee.deletEmployee({ ids: idArr.toString() }).then(res => {
+          delGoods({ id: idArr.toString() }).then(res => {
             this.$Message.destroy();
             if (res.data.success) {
               this.$Message.success(res.data.msg);
@@ -292,10 +399,18 @@ export default {
       this.page.pageNo = 1;
       this.getlist();
     },
+    modalSerachdata() {
+      this.modal.page.pageNo = 1;
+      this.getActiveList();
+    },
     pageChange(page) {
       //页码改变
       this.page.pageNo = page;
       this.getlist();
+    },
+    modalpageChange(page) {
+      this.modal.page.pageNo = page;
+      this.getActiveList();
     },
     pageGroupChange(pageGroup) {
       //改变每页条数
@@ -303,51 +418,41 @@ export default {
       this.page.pageSize = pageGroup;
       this.getlist();
     },
+    modalpageGroupChange(pageGroup) {
+      //改变每页条数
+      this.modal.page.pageNo = 1;
+      this.modal.page.pageSize = pageGroup;
+      this.getActiveList();
+    },
     rideoGroupChange(v) {
       if (v.indexOf("全部") > -1) {
-        this.serach.grayStatus = "";
-      } else if (v.indexOf("正常") > -1) {
-        this.serach.grayStatus = 0;
-      } else if (v.indexOf("灰名单") > -1) {
-        this.serach.grayStatus = 1;
+        this.serach.enable = "";
+      } else if (v.indexOf("上架") > -1) {
+        this.serach.enable = 0;
+      } else if (v.indexOf("下架") > -1) {
+        this.serach.enable = 1;
       }
       this.getlist();
     },
     getlist() {
-      return;
-      //获取列表信息
       var data = {
         pageNo: this.page.pageNo,
         pageSize: this.page.pageSize,
-        followStatus:
-          this.serach.followStatus == "all" ? "" : this.serach.followStatus,
-        groupName: this.serach.groupName,
-        groupId: this.serach.groupId,
-        searchWord: this.serach.searchWord,
-        grayStatus: this.serach.grayStatus
+        enable: this.serach.enable,
+        type: this.serach.type,
+        no: this.serach.no,
+        brand: this.serach.brand
       };
-
-      allEmployee
-        .pageEmployee(data)
+      listGoods(data)
         .then(res => {
           $(".el-table__body-wrapper").scrollTop(0);
           this.tableSelect = [];
           this.rideoGroup.total = `全部 (${res.data.data.normal +
             res.data.data.gray})`;
-          this.rideoGroup.normal = `正常 (${res.data.data.normal})`;
-          this.rideoGroup.gray = `灰名单 (${res.data.data.gray})`;
+          this.rideoGroup.normal = `上架 (${res.data.data.normal})`;
+          this.rideoGroup.gray = `下架 (${res.data.data.gray})`;
           res.data.data.records.map((v, i) => {
             v.index = (this.page.pageNo - 1) * this.page.pageSize + 1 + i;
-            if (v.followStatus == 0) {
-              v.followStatus = "未关注";
-            } else if (v.followStatus == 1) {
-              v.followStatus = "已关注";
-            }
-            if (v.grayStatus == 0) {
-              v.grayStatus = "正常";
-            } else if (v.grayStatus == 1) {
-              v.grayStatus = "已拉灰";
-            }
           });
           this.page.total = res.data.data.total;
           this.datalist = res.data.data.records;
@@ -360,14 +465,96 @@ export default {
       getGoodTree({ type: 2 }).then(res => {
         if (res.data.success) {
           this.tree = res.data.data.children;
-          console.log(this.tree);
+        } else {
+          this.$Message.error(res.data.msg);
+        }
+      });
+    },
+    getTags() {
+      listtags({ enable: 0, pageSize: 100000000 }).then(res => {
+        if (res.data.success) {
+          this.tags = res.data.data.records;
+        } else {
+          this.$Message.error(res.data.msg);
+        }
+      });
+    },
+    enable(e) {
+      enableGoods({ id: e.id, enable: e.enable === 0 ? 1 : 0 }).then(res => {
+        if (res.data.success) {
+          this.getlist();
+          this.$Message.success(res.data.msg);
         } else {
           this.$Message.error(res.data.msg);
         }
       });
     },
     treeClick(e) {
-      console.log(e);
+      this.serach.type = e[0].length === 0 ? "" : e[0].id;
+      this.getlist();
+    },
+    addActive() {
+      this.modal.modalShow = true;
+    },
+    getActiveList() {
+      let data = {
+        enable: 0,
+        from: 2,
+        endtime: this.modal.serach.endtime,
+        starttime: this.modal.serach.starttime,
+        type: this.modal.serach.type == "all" ? "" : this.modal.serach.type,
+        title: this.modal.serach.title
+      };
+      listActive(data).then(res => {
+        if (res.data.success) {
+          this.modal.activeList = res.data.data.records;
+          this.modal.page.total = res.data.data.total;
+        } else {
+          this.$Message.error(res.data.msg);
+        }
+      });
+    },
+    timeChange(e) {
+      this.serach.starttime = Date.parse(e[0]) / 1000;
+      this.serach.endtime = Date.parse(e[1]) / 1000;
+    },
+    modaltimeChange(e) {
+      this.modal.serach.starttime = Date.parse(e[0]) / 1000;
+      this.modal.serach.endtime = Date.parse(e[1]) / 1000;
+    },
+    modalReset(e) {
+      this.modal.ridio = "";
+      this.modal.serach.title = "";
+      this.modal.serach.type = "";
+      this.modal.serach.starttime = "";
+      this.modal.serach.endtime = "";
+      this.modal.serach.title = "";
+      this.modal.serach.title = "";
+      this.$refs["modalDay"].handleClear();
+      this.modal.page.pageSize = 20;
+      this.modal.page.pageNo = 1;
+      if (!e) {
+        this.getActiveList();
+      }
+    },
+    activeSubmit() {
+      let id = [];
+      this.tableSelect.map((v, i) => {
+        id.push(v.id);
+      });
+      let data = {
+        id: id.toString(),
+        activeid: this.modal.ridio
+      };
+
+      goodAddActive(data).then(res => {
+        if (res.data.success) {
+         this.modal.modalShow=false;
+          this.$Message.success(res.data.msg);
+        } else {
+          this.$Message.error(res.data.msg);
+        }
+      });
     }
   }
 };
@@ -472,5 +659,11 @@ export default {
     width: ~"calc(100% - 240px)";
     padding-left: 20px;
   }
+}
+.modalSerach {
+  display: flex;
+}
+.RadioGroup {
+  width: 100%;
 }
 </style>

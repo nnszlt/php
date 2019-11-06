@@ -1,94 +1,84 @@
 <?php
-//产品中心
+//产品管理
 namespace app\admin\controller;
-
 use app\common\controller\Base;
-use app\admin\model\Good;
 use think\Db;
 use \think\Validate;
 
 class Goods extends Base
 {
-    public function gettree()
+    private $rule = [
+        'name'  => 'require',
+        'price' => 'require',
+        'number' => 'require',
+        'mprice' => 'require',
+        'no' => 'require',
+        'enable' => 'require',
+        'unit' => 'require',
+        'type' => 'require',
+        'price' => 'require',
+        'imgs' => 'require'
+    ];
+    private $msg = [
+        'name.require' => '产品名称不能为空',
+        'price.require' => '产品价格不能为空',
+        'number.require' => '库存不能为空',
+        'mprice.require' => '市场价格不能为空',
+        'no.require' => '产品型号不能为空',
+        'enable.require' => '商品是否可用不能为空',
+        'unit.require' => '计价单位不能为空',
+        'type.require' => '大类名称不能为空',
+        'mprice.require' => '大类名称不能为空',
+        'imgs.require' => '产品图片不能为空',
+    ];
+    public function list($name = "", $no = "", $brand = "", $type = "", $enable = "", $label = "", $pageNo = 1, $pageSize = 10)
     {
-        $req = $this->request->param()['type'];
-        //type==1 组织树   2大类类表
-        if ($req == 1) {
-            $listData = Db::table('good')->where('enable=1')->select();
-            $res = Good::quote_make_tree($listData);
-            return $this->sendMsgSuccess(['label' => '产品', 'id' => '0', 'path' => 0, 'enable' => '1', 'children' => $res]);
-        } else {
-            $listData = Db::table('good')->where('enable=1')->field('id,Fpid,label as "title"')->select();
-            foreach ($listData as $key => $value) {
-                $listData[$key]['expand'] = true;
-            }
-            $res = Good::quote_make_tree($listData);
-            return $this->sendMsgSuccess(['title' => '产品', 'id' => '0', 'path' => 0, 'enable' => '1', 'children' => $res]);
+        $sql = [];
+        if ($name != '') {
+            $sql['a.name'] = ['like', '%' . $name . '%'];
         }
-    }
-    public function untree()
-    {
-        $listData = Db::table('good')->where('enable=0')->select();
-        return $this->sendMsgSuccess($listData);
-    }
-    public function addtree()
-    {
-        //添加组织
-        $rule = [
-            'id'  => 'require',
-            'label' => 'require',
-        ];
-        $msg = [
-            'id.require' => 'id不能为空',
-            'label.require' => '大类名称不能为空'
-        ];
-        $req = $this->request;
-        $validate = new Validate($rule, $msg);
-        $user = $this->adminCheckLogin();
-        if ($user['success']) {
-            if ($req->isPost()) {
-                $data = $req->param();
-                if ($validate->check($data)) {
-                    if ($data['id'] == 0) {
-                        $sql = Good::create(['Fpid' => $data['id'], 'label' => $data['label'], 'enable' => 1, 'path' => '', 'createtime' => time(), 'updatetime' => time()]);
-                        $req = Good::where('id', $sql->id)->update(['path' =>  $sql->id]);
-                        return $this->sendMsgSuccess($req);
-                    } else {
-                        $path = Good::get($data['id'])->path;
-                        $sql = Good::create(['Fpid' => $data['id'], 'label' => $data['label'], 'enable' => 1, 'path' => '', 'createtime' => time(), 'updatetime' => time()]);
-                        $req = Good::where('id', $sql->id)->update(['path' => $path . $sql->id]);
-                        return $this->sendMsgSuccess($sql);
-                    }
-                } else {
-                    return $this->sendMsgFail($validate->getError());
-                }
-            } else {
-                $this->sendMsgFail("请正确访问");
-            }
-        } else {
-            return  $user;
+        if ($no != '') {
+            $sql['a.no'] = ['=', $no];
         }
+        if ($brand != '') {
+            $sql['a.brand'] = ['=', $brand];
+        }
+        if ($type != '') {
+            $goodtype = Db::table('good')->where('id', $type)->find();
+            $sql['a.path'] = ['like',  $goodtype['path'].'%'];
+        }
+        if ($enable != '') {
+            $sql['a.enable'] = ['=', $enable];
+        }
+        if ($label != '') {
+            $sql['a.label'] = ['in', $label];
+        }
+        $data = Db::table('goods')->alias("a")->join("active b","a.activeid=b.id","LEFT")->where($sql)->page($pageNo, $pageSize)->field("a.*,b.title as activeTitle")->select();
+
+        $sql['a.enable'] = ['=', 1];
+        $gray = Db::table('goods')->alias("a")->where($sql)->count();
+        $sql['a.enable'] = ['=', 0];
+        $normal = Db::table('goods')->alias("a")->where($sql)->count();
+        $total = Db::table('goods')->alias("a")->where($sql)->count();
+        $req = ['pageNo' => $pageNo, 'pageSize' => $pageSize, 'total' => $total, 'records' => $data, 'gray' => $gray, 'normal' => $normal];
+        return $this->sendMsgSuccess($req);
     }
 
-    public function edittree()
+
+    public function addgoods()
     {
-        //编辑组织
-        $rule = [
-            'id'  => 'require',
-            'label' => 'require',
-        ];
-        $msg = [
-            'id.require' => 'id不能为空',
-            'label.require' => '大类名称不能为空'
-        ];
-        $req = $this->request;
-        $validate = new Validate($rule, $msg);
         $user = $this->adminCheckLogin();
+        $req = $this->request;
+        $validate = new Validate($this->rule, $this->msg);
         if ($user['success']) {
             if ($req->isPost()) {
                 $data = $req->param();
                 if ($validate->check($data)) {
-                    $sql = Db::table('good')->where('id', $data['id'])->update(['label' => $data['label'], 'updatetime' => time()]);
+                    $data['path'] = Db::table('good')->where('id', $data['type'])->find()['path'];
+                    $data['createtime'] = time();
+                    $data['updatetime'] = time();
+                    $data['seckill']=1;
+                    $sql = Db::table('goods')->insert($data);
                     return $this->sendMsgSuccess($sql);
                 } else {
                     return $this->sendMsgFail($validate->getError());
@@ -100,30 +90,20 @@ class Goods extends Base
             return  $user;
         }
     }
-
-
-    public function deltree()
+    public function editgoods()
     {
-        //不可用组织
-        $rule = [
-            'id'  => 'require',
-        ];
-        $msg = [
-            'id.require' => 'id不能为空',
-        ];
-        $req = $this->request;
-        $validate = new Validate($rule, $msg);
         $user = $this->adminCheckLogin();
+        $req = $this->request;
+        $validate = new Validate($this->rule, $this->msg);
         if ($user['success']) {
             if ($req->isPost()) {
                 $data = $req->param();
                 if ($validate->check($data)) {
-                    $find = Db::table('good')->where('id', $data['id'])->find();
-                    $paths = Db::table('good')->where('path', 'like', $find['path'] . '%')->select();
-                    foreach ($paths as $key => $value) {
-                        Db::table('good')->where('id', $value['id'])->update(['enable' => $data['enable'], 'updatetime' => time()]);
-                    }
-                    return $this->sendMsgSuccess();
+                    $data['path'] = Db::table('good')->where('id', $data['type'])->find()['path'];
+                    $data['createtime'] = time();
+                    $data['updatetime'] = time();
+                    $sql = Db::table('goods')->where('id', $data['id'])->update($data);
+                    return $this->sendMsgSuccess($sql);
                 } else {
                     return $this->sendMsgFail($validate->getError());
                 }
@@ -134,63 +114,50 @@ class Goods extends Base
             return  $user;
         }
     }
-    public function trashTree()
+    public function show($id = '')
     {
-        //彻底删除组织
-        $rule = [
-            'id'  => 'require',
-        ];
-        $msg = [
-            'id.require' => 'id不能为空',
-        ];
-        $req = $this->request;
-        $validate = new Validate($rule, $msg);
         $user = $this->adminCheckLogin();
+        $req = $this->request;
         if ($user['success']) {
-            if ($req->isPost()) {
-                $data = $req->param();
-                if ($validate->check($data)) {
-                    // 
-                    $find = Db::table('good')->where('id', $data['id'])->find();
-                    $paths = Db::table('good')->where('path', 'like', $find['path'] . '%')->select();
-                    foreach ($paths as $key => $value) {
-                        Db::table('good')->delete($value['id']);
-                    }
-                    return $this->sendMsgSuccess();
-                } else {
-                    return $this->sendMsgFail($validate->getError());
-                }
-            } else {
-                $this->sendMsgFail("请正确访问");
+            if ($id == '') {
+                return    $this->sendMsgFail("id不能为空");
             }
+            $req = Db::table('goods')->where('id', $id)->find();
+            if (!empty($req['label'])) {
+                $req['label'] = Db::table('tags')->where('id', 'in', $req['label'])->select();
+            }
+            return $this->sendMsgSuccess($req);
         } else {
             return  $user;
         }
     }
-    public function selectTree()
+    public function del($id = '')
     {
-        $req = $this->CycleData(0);
-        return $this->sendMsgSuccess($req);
+        $user = $this->adminCheckLogin();
+        $req = $this->request;
+        if ($user['success']) {
+            if ($id == '') {
+                return    $this->sendMsgFail("id不能为空");
+            }
+            $req = Db::table('goods')->delete($id);
+            return $this->sendMsgSuccess($req);
+        } else {
+            return  $user;
+        }
     }
 
-    public  function CycleData($Fpid = 0)
+    public function enable($id = '', $enable = 0)
     {
-        $where['Fpid'] = $Fpid;
-        $res = Db::table('good')->where($where)->select();;
-        if (empty($res)) return false;
-        foreach ($res as $k => $v) {
-            $result[$v['id']]['id'] = $v['id'];
-            $result[$v['id']]['label'] = $v['label'];
-            $result[$v['id']]['Fpid'] = $v['Fpid'];
-            $rf = $this->CycleData($v['id']);
-            if ($rf) {
-                foreach ($rf as $k => $vv) {
-                    $result[$vv['id']]['id'] = $vv['id'];
-                    $result[$vv['id']]['label'] = "   |- " . $vv['label'];
-                    $result[$vv['id']]['Fpid'] = $vv['Fpid'];
-                }
+        $user = $this->adminCheckLogin();
+        $req = $this->request;
+        if ($user['success']) {
+            if ($id == '') {
+                return   $this->sendMsgFail("id不能为空");
             }
+            $req = Db::table('goods')->where('id', $id)->update(['enable' => $enable]);
+            return $this->sendMsgSuccess($req);
+        } else {
+            return  $user;
         }
-        return $result;
     }
 }

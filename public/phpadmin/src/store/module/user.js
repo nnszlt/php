@@ -13,7 +13,7 @@ export default {
     account: '',
     userId: '',
     avatarImgPath: '',
-    access: '',
+    access:[],
     hasGetInfo: false,
     unreadCount: 0,
     messageUnreadList: [],
@@ -70,6 +70,7 @@ export default {
         phone: data.phone,
         sex: data.sex,
       }
+      state.access=data.menuAuth.split(",")
     }
   },
   getters: {

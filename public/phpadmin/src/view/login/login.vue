@@ -26,6 +26,7 @@ export default {
     ...mapActions(["handleLogin"]),
     ...mapMutations(["setUserInfo"]),
     handleSubmit({ account, password }) {
+      console.log(9999,account, password)
       this.handleLogin({ account, password }).then(res => {
         console.log(res);
         if (res.success) {

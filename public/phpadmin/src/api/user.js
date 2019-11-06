@@ -19,8 +19,7 @@ export const login = ({
 export const logout = () => {
   //登出
   return axios.request({
-    url: '/admin/login/logout',
-    method: 'post'
+    url: '/admin/login/loginOut',
   })
 }
 
@@ -61,6 +60,69 @@ export const readMsg = data => {
     url: '/admin/message/readMsg',
     method: 'get',
     params: data
+  })
+}
+
+export const menuAuth = data => {
+  //获取权限导航表
+  return axios.request({
+    url: '/admin/menuauth/menuList',
+    method: 'get',
+    params: data
+  })
+}
+
+export const userList = data => {
+  //获取用户表
+  return axios.request({
+    url: '/admin/user/userList',
+    method: 'post',
+    data: data
+  })
+}
+
+export const addUser = data => {
+  //添加用户
+  return axios.request({
+    url: '/admin/user/addUser',
+    method: 'post',
+    data: data
+  })
+}
+export const showUser = data => {
+  //添加用户
+  return axios.request({
+    url: '/admin/user/showUser',
+    method: 'post',
+    data: data
+  })
+}
+
+export const editUser = data => {
+  //编辑用户
+  return axios.request({
+    url: '/admin/user/editUser',
+    method: 'post',
+    data: data
+  })
+}
+
+export const enableUser = data => {
+  //编辑用户
+  return axios.request({
+    url: '/admin/user/enableUser',
+    method: 'post',
+    data: data
+  })
+}
+
+
+export const delUser = data => {
+  //删除用户
+  return axios.request({
+    url: '/admin/user/delUser',
+    method: 'post',
+    data: data
   })
 }
 

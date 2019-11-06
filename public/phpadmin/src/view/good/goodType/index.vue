@@ -51,7 +51,7 @@ import {
   deltree,
   getUnTree,
   trashTree
-} from "_api/goods";
+} from "_api/goodtype";
 import "./index.less";
 export default {
   name: "org_tree_page",

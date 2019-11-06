@@ -43,7 +43,7 @@ export default {
   data () {
     return {
       form: {
-        userName: 'super_admin',
+        userName: 'admin',
         password: ''
       }
     }
@@ -60,8 +60,9 @@ export default {
     handleSubmit () {
       this.$refs.loginForm.validate((valid) => {
         if (valid) {
+          console.log(this.form.userName)
           this.$emit('on-success-valid', {
-            userName: this.form.userName,
+            account: this.form.userName,
             password: this.form.password
           })
         }

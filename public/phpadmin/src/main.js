@@ -18,11 +18,28 @@ import TreeTable from 'tree-table-vue'
 import VOrgTree from 'v-org-tree'
 import 'v-org-tree/dist/v-org-tree.css'
 import $ from 'jquery'
+import {
+  formatDate
+} from "@/libs/date";
+import preview from 'vue-photo-preview'
+import 'vue-photo-preview/dist/skin.css'
+Vue.use(preview)
 window.$ = $
-// 实际打包时应该不引入mock
-/* eslint-disable */
-// if (process.env.NODE_ENV !== 'production') require('@/mock')
 
+
+// element 组建
+import 'element-ui/lib/theme-chalk/index.css';
+import {
+  Tooltip,
+  Table,
+  TableColumn
+} from 'element-ui';
+Vue.component(Tooltip.name, Tooltip);
+Vue.component(Table.name, Table);
+Vue.component(TableColumn.name, TableColumn);
+
+
+//
 Vue.use(iView, {
   i18n: (key, value) => i18n.t(key, value)
 })
@@ -45,7 +62,8 @@ Vue.prototype.$config = config
  */
 importDirective(Vue)
 Vue.directive('clickOutside', clickOutside)
-
+Vue.prototype.API = process.env.NODE_ENV === 'production' ? config.baseUrl.pro : config.baseUrl.dev;
+Vue.prototype.formatDate = formatDate;
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

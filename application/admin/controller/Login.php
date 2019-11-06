@@ -1,5 +1,5 @@
 <?php
-
+//登陆
 namespace app\admin\controller;
 
 use app\common\controller\Base;
@@ -25,7 +25,9 @@ class Login extends Base
         if ($req->isPost()) {
             $data = $req->param();
             if ($validate->check($data)) {
+                Db::table('admin')->where('account', $data['account'])->where('password', md5($data['password']))->update(['lastLoginTime'=>time()]);
                 $res = Db::table('admin')->where('account', $data['account'])->where('password', md5($data['password']))->find();
+
                 if (empty($res)) {
                     return json(['success' => false, 'msg' => '账户或密码错误']);
                 } else {
@@ -54,13 +56,14 @@ class Login extends Base
             //判断是否登陆
             $user =  Session::get('USER');
             if (empty($user)) {
-                return ['success' => false, 'msg' => '用户未登陆'];
+                return json(['success' => false, 'msg' => '用户未登陆']);
             } else {
                 $data = Db::table('admin')->find($user);
                 Session::set('USER',  $data['id']);
                 return   $this->sendMsgSuccess($data);
             }
         } else {
+          
             return json(['success' => false, 'msg' => '请正确访问']);
         }
     }

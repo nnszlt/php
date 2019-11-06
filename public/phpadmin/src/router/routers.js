@@ -56,31 +56,127 @@ export default [{
       showAlways: true,
       title: '产品管理',
       icon: 'ios-shirt',
+      access: ['A1']
     },
     children: [{
       path: 'goodType',
       name: 'goodType',
       meta: {
-        title: '产品大类管理'
+        title: '产品大类管理',
+        access: ['A2']
       },
       component: () => import('@/view/good/goodType/index.vue')
     }, {
       path: 'goodList',
       name: 'goodList',
       meta: {
-        title: '产品列表管理'
+        title: '产品列表管理',
+        access: ['A3']
       },
       component: () => import('@/view/good/goodList/goodList.vue')
     }, {
-      path: 'addGood',
+      path: 'addGood/:id',
       name: 'addGood',
+
       meta: {
         title: '添加产品',
-        hideInMenu: true
+        hideInMenu: true,
+        notCache: true,
       },
       component: () => import('@/view/good/goodList/goodAdd.vue')
     }]
+  }, {
+    path: '/tags',
+    name: 'tags',
+    component: Main,
+    meta: {
+      hideInBread: false,
+      showAlways: true,
+      title: '标签管理',
+      icon: 'ios-bookmark',
+      access: ['B1']
+    },
+    children: [{
+      path: 'tagsList',
+      name: 'tagsList',
+      meta: {
+        title: '标签列表',
+        access: ['B2']
+      },
+      component: () => import('@/view/tags/tagsList.vue')
+    }]
+  }, {
+    path: '/banner',
+    name: 'banner',
+    component: Main,
+    meta: {
+      hideInBread: false,
+      showAlways: true,
+      title: '轮播管理',
+      icon: 'ios-bookmark',
+      access: ['D1']
+    },
+    children: [{
+      path: 'bannerList',
+      name: 'bannerList',
+      meta: {
+        title: '轮播列表',
+        access: ['D2']
+      },
+      component: () => import('@/view/banner/banner.vue')
+    }]
+  }, {
+    path: '/active',
+    name: 'active',
+    component: Main,
+    meta: {
+      hideInBread: false,
+      showAlways: true,
+      title: '活动管理',
+      icon: 'ios-bookmark',
+      access: ['E1']
+    },
+    children: [{
+      path: 'activeList',
+      name: 'activeList',
+      meta: {
+        title: '活动列表',
+        access: ['E2']
+      },
+      component: () => import('@/view/active/active.vue')
+    }, {
+      path: 'couponList',
+      name: 'couponList',
+      meta: {
+        title: '优惠券列表',
+        access: ['E3']
+      },
+      component: () => import('@/view/coupon/coupon.vue')
+    }]
   },
+  {
+    path: '/user',
+    name: 'user',
+    component: Main,
+    meta: {
+      hideInBread: false,
+      showAlways: true,
+      title: '用户管理',
+      icon: 'ios-bookmark',
+      access: ['C1']
+    },
+    children: [{
+      path: 'userList',
+      name: 'userList',
+      meta: {
+        title: '用户列表',
+        access: ['C2']
+      },
+      component: () => import('@/view/user/user.vue')
+    }]
+  },
+
+
   {
     path: '',
     name: 'doc',

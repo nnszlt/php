@@ -1,62 +1,57 @@
 import axios from '@/libs/api.request'
 
-export const getGoodTree = data => {
-  //获取树
+export const addGoods = data => {
+  //添加商品 
   return axios.request({
-    url: '/admin/goods/gettree',
+    url: '/admin/goods/addgoods',
+    method: 'post',
+    data: data
+  })
+}
+
+
+export const editGoods = data => {
+  //编辑产品
+  return axios.request({
+    url: '/admin/goods/editgoods',
+    method: 'post',
+    data: data
+  })
+}
+
+
+export const showGoods = data => {
+  //产看产品详情
+  return axios.request({
+    url: '/admin/goods/show',
     method: 'get',
     params: data
   })
 }
-export const getUnTree = () => {
-  //获禁用的取树
+
+export const listGoods = data => {
+  //查询产品列表
   return axios.request({
-    url: '/admin/goods/untree',
-    method: 'get'
+    url: '/admin/goods/list',
+    method: 'get',
+    params: data
   })
 }
 
-export const trashTree = data => {
-  //彻底删除删除
+export const delGoods = data => {
+  //删除商品
   return axios.request({
-    url: '/admin/goods/trashTree',
-    method: 'post',
-    data: data
-  })
-}
-export const addtree = data => {
-  //增加树
-  return axios.request({
-    url: '/admin/goods/addtree',
+    url: '/admin/goods/del',
     method: 'post',
     data: data
   })
 }
 
-export const edittree = data => {
-  //增加树
+export const enableGoods = data => {
+  //商品上下架
   return axios.request({
-    url: '/admin/goods/edittree',
+    url: '/admin/goods/enable',
     method: 'post',
     data: data
-  })
-}
-
-export const deltree = data => {
-  //增加树
-  return axios.request({
-    url: '/admin/goods/deltree',
-    method: 'post',
-    data: data
-  })
-}
-
-///产品详情
-
-export const selectTree = () => {
-  //获禁用的取树
-  return axios.request({
-    url: '/admin/goods/selectTree',
-    method: 'get'
   })
 }

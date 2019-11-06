@@ -44,8 +44,8 @@ class Message extends Base
             if (empty($data['id'])) {
                 return  $this->sendMsgFail("ID不能为空");
             } else {
-                $res = Db::table("message")->where("id", $data['id'])->where('type=0,isDEL=0')->update(['type' => 1]);
-                return  $this->sendMsgSuccess();
+                $res = Db::table("message")->where("id", $data['id'])->where('type=0')->update(['type' => 1]);
+                return  $this->sendMsgSuccess($res);
             }
         } else {
             return  $user;

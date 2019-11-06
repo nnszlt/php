@@ -11,7 +11,7 @@ class Pool extends Controller
     //查询操作
     public function find1()
     {
-        $sql = Db::table('pool')->where('id', 1)->find();
+        $sql = Db::table('pool')->where('id','in','1,2')->select();
         dump($sql);
     }
     public function find2()
@@ -351,4 +351,18 @@ class Pool extends Controller
         $sql = Db::table('pool')->where("ddsj", '< time', '2019-09-05')->order('ddsj')->field("id,ddsj")->select();
         dump($sql);
     }
+//链表查询
+
+        // public function index()
+    // {
+    //     $data = Db::table('goods')->alias('a')->join('tags b', 'a.label=b.id', 'LEFT')->field(['a.name', 'a.id', 'b.name' => 'label'])->select();
+    //     //    dump($data);
+    //     return json($data);
+    // }
+
+    // public function index1()
+    // {
+    //     $data = Db::table('goods')->alias('a')->join('tags b', 'a.label IN b.id')->field(['a.name', 'a.id', 'b.name' => 'label'])->select();
+    //     dump($data);
+    // }
 }
